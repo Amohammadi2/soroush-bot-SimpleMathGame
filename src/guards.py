@@ -1,4 +1,5 @@
 from functools import wraps
+from contextlib import suppress
 from logger import Logger
 
 GOING_TO_BE_BANNED = []
@@ -8,7 +9,9 @@ LOGGER = Logger(LOG_FILE)
 
 def max_message_len(length):
     def decorator(fn):
+        if not fn: return
         def wrapper(bot, msg, *args, **kwargs):
+            LOGGER.log(msg)
             LOGGER.log(f"GB users: {GOING_TO_BE_BANNED}")
             LOGGER.log(f"B users: {BANNED}")
             user_id = msg["from"]
@@ -27,5 +30,25 @@ def max_message_len(length):
                 GOING_TO_BE_BANNED.append(user_id)
                 return
             return fn(bot, msg, *args, **kwargs)
+        return wrapper
+    return decorator
+
+def allow_message_types(type_list: list):
+    def decorator(fn):
+        if not fn: return
+        @wraps(fn)
+        def wrapper(bot, msg, *args, **kwargs):
+            if msg["type"] in type_list: return fn(bot, msg, *args, **kwargs)
+
+        return wrapper
+    return decorator
+
+def noexcept(excep_type):
+    def decorator(fn):
+        if not fn: return
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            with suppress(excep_type):
+                return fn(*args, **kwargs)
         return wrapper
     return decorator
