@@ -1,6 +1,7 @@
 from functools import wraps
 from contextlib import suppress
 from logger import Logger
+import time
 
 GOING_TO_BE_BANNED = []
 BANNED = []
@@ -15,14 +16,19 @@ def max_message_len(length):
             LOGGER.log(f"GB users: {GOING_TO_BE_BANNED}")
             LOGGER.log(f"B users: {BANNED}")
             user_id = msg["from"]
-            if user_id in BANNED:
-                return
+            tm = msg["time"]
+            for x in BANNED:
+                if time.time() - int(x["time"]) / 1000 > 86400: # it's been more than a day
+                    BANNED.remove(x)
+                    break
+                if x["id"] == user_id: return
+
             if len(msg["body"]) > length:
                 # first time -> warning
                 if user_id in GOING_TO_BE_BANNED:
                     LOGGER.warning("user {} has been banned".format(user_id))
                     bot.send_text(user_id, "شما بن شدید. زین پس پاسخی به پیام های شما داده نخواهد شد")
-                    BANNED.append(user_id)
+                    BANNED.append({"id":user_id, "time": tm})
                     return
                 # second time -> ban the user
                 LOGGER.warning("user: {} is going to be banned".format(user_id))
@@ -33,15 +39,16 @@ def max_message_len(length):
         return wrapper
     return decorator
 
+
 def allow_message_types(type_list: list):
     def decorator(fn):
         if not fn: return
         @wraps(fn)
         def wrapper(bot, msg, *args, **kwargs):
             if msg["type"] in type_list: return fn(bot, msg, *args, **kwargs)
-
         return wrapper
     return decorator
+
 
 def noexcept(excep_type):
     def decorator(fn):
@@ -50,5 +57,14 @@ def noexcept(excep_type):
         def wrapper(*args, **kwargs):
             with suppress(excep_type):
                 return fn(*args, **kwargs)
+        return wrapper
+    return decorator
+
+def time_limit(time):
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(bot, msg, *args, **kwargs):
+            print (msg["time"])
+            return fn(bot, msg, *args, **kwargs)
         return wrapper
     return decorator
