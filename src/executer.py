@@ -6,13 +6,6 @@ from logger import Logger
 LOG_FILE = open("../log/log.txt", "a+", encoding="utf-8")
 LOGGER = Logger(LOG_FILE)
 
-def time_protect(time):
-    def decorator(fn):
-        @wraps(fn)
-        def wrapper(self, *args, **kwargs):
-            return fn(self, *args, **kwargs)
-        return wrapper
-    return decorator
 
 class Executer:
     def __init__(self, bot, user_id):
@@ -34,14 +27,12 @@ class Executer:
             message
         )
 
-    @time_protect(60*60*24)
     def start(self):
         response = self.get_random_math_problem()
         self.answer = eval(response)
         self.bot.send_text(self.user_id, response)
         self.start_time = time.perf_counter()
 
-    @time_protect(60*60*24)
     def process_response(self, response):
         if getattr(self, "answer", None) is None:
             return
