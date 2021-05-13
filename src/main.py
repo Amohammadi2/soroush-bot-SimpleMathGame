@@ -3,7 +3,7 @@ from client import Client
 from token_loader import load_token
 from executer import Executer
 from logger import Logger
-from guards import max_message_len, allow_message_types
+from guards import max_message_len, allow_message_types, time_limit
 from admin_commands import cmds
 
 EXECUTERS = dict()
@@ -13,6 +13,7 @@ LOGGER = Logger(LOG_FILE)
 
 @max_message_len(256)
 @allow_message_types(["TEXT"])
+@time_limit(60*60*24)
 def process_message(bot, msg, **kwargs):
     user_id = msg["from"]
     if msg["body"] == "start":
