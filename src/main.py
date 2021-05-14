@@ -13,7 +13,7 @@ LOGGER = Logger(LOG_FILE)
 
 @max_message_len(256)
 @allow_message_types(["TEXT"])
-@time_limit(60*60*24)
+@time_limit(60*60*3) # 3 hours
 def process_message(bot, msg, **kwargs):
     user_id = msg["from"]
     if msg["body"] == "start":
